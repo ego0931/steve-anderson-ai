@@ -1,0 +1,27 @@
+name: Build and publish site
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble site
+        run: |
+          mkdir -p out/media
+          cp index.html out/
+          touch out/.nojekyll
+          for f in client-song-1 client-song-2; do
+            cat b64/$f.mp3.b64.part* | base64 -d > out/media/$f.mp3
+          done
+          ls -la out out/media
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./out
+          publish_branch: gh-pages
+          force_orphan: true
