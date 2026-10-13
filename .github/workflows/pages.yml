@@ -12,14 +12,19 @@ jobs:
       - uses: actions/checkout@v4
       - name: Assemble site
         run: |
-          mkdir -p out/media
+          mkdir -p out/media out/files
           cp index.html out/
           touch out/.nojekyll
           for f in client-song-1 client-song-2; do
             cat b64/$f.mp3.b64.part* | base64 -d > out/media/$f.mp3
           done
           base64 -d b64/og.png.b64 > out/og.png
-          ls -la out out/media
+          # Downloadable PDFs: b64/<name>.pdf.b64 -> out/files/<name>.pdf
+          for f in b64/*.pdf.b64; do
+            [ -e "$f" ] || continue
+            base64 -d "$f" > "out/files/$(basename "$f" .b64)"
+          done
+          ls -la out out/media out/files
       - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
